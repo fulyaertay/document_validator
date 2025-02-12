@@ -15,8 +15,8 @@
     "html2canvas": "^1.4.1",
     "pdf-parse": "^1.1.1",
     "pdfjs-dist": "^4.10.38",
-    "react": "^16.14.0",
-    "react-dom": "^16.14.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
     "react-dropzone": "^14.3.5",
     "react-scripts": "5.0.1"
   },
