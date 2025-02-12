@@ -114,10 +114,11 @@ function App() {
               Döküman İçeriği
             </Typography>
             <Card style={{ padding: "1rem"}}>
-              <div
-                style={{ whiteSpace: "normal" }}
-                dangerouslySetInnerHTML={{ __html: htmlContent }}
-              />
+            <div
+  className="max-w-full overflow-x-auto break-words whitespace-pre-wrap text-base leading-relaxed"
+  dangerouslySetInnerHTML={{ __html: htmlContent }}
+/>
+
             </Card>
 
             {/* Analiz Sonuçları */}
