@@ -69,7 +69,11 @@ function App() {
       setLoading(false);
     }
   };
-
+  const parseAnalysis = (analysisText) => {
+    // '###' ile başlıkları ve içerikleri ayırma
+    const sections = analysisText.split("###").map((section) => section.trim());
+    return sections.filter((section) => section !== ""); // Boş bölümleri temizle
+  };
   return (
     <Container maxWidth="md" style={{ marginTop: "2rem" }}>
       <Card style={{ padding: "2rem", textAlign: "center" }}>
@@ -127,7 +131,18 @@ function App() {
             </Typography>
             <Card style={{ padding: "1rem", backgroundColor: "#e3f2fd" }}>
               <Typography variant="body1" style={{ whiteSpace: "pre-line" }}>
-                {analysis}
+             {/* Başlıkları ayırarak render etme */}
+             {parseAnalysis(analysis).map((section, index) => {
+                const [title, ...content] = section.split("\n");
+                return (
+                  <div key={index}>
+                    <Typography variant="h6" style={{ marginTop: "1rem" }}>
+                      {title}
+                    </Typography>
+                    <Typography variant="body1">{content.join("\n")}</Typography>
+                  </div>
+                );
+              })}
               </Typography>
             </Card>
           </div>
