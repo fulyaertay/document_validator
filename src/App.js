@@ -52,7 +52,7 @@ function App() {
         messages: [
           {
             role: "user",
-            content: `Aşağıdaki dökümanın türünü belirle ve eksiklerini analiz et. İçerik aşağıdadır:\n\n${content}`,
+            content: `Aşağıdaki dökümanın türünü belirle ve detaylı bir şekilde her bir başlık için eksiklerini belirle ve analiz et. Ayrıca içeriği tasarımsal açıdan da değerlendir. İçerik budur:\n\n${content}`,
           },
         ],
       });
