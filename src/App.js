@@ -84,21 +84,21 @@ function App() {
           onChange={(e) => setDocUrl(e.target.value)}
           margin="normal"
         />
-       <Button
-  variant="contained"
-  color="primary"
-  onClick={() => fetchGoogleDocsHTML(docUrl)}
-  disabled={loading || !docUrl}
->
-  {loading ? (
-    <>
-      <CircularProgress size={24} style={{ marginRight: "8px" }} />
-      Analiz Ediliyor...
-    </>
-  ) : (
-    "Dökümanı Analiz Et"
-  )}
-</Button>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => fetchGoogleDocsHTML(docUrl)}
+          disabled={loading || !docUrl}
+        >
+          {loading ? (
+            <>
+              <CircularProgress size={24} style={{ marginRight: "8px" }} />
+              Analiz Ediliyor...
+            </>
+          ) : (
+            "Dökümanı Analiz Et"
+          )}
+        </Button>
 
 
         {error && (
@@ -113,11 +113,11 @@ function App() {
             <Typography variant="h5" color="primary" gutterBottom>
               Döküman İçeriği
             </Typography>
-            <Card style={{ padding: "1rem"}}>
-            <div
-  className="max-w-full overflow-x-auto break-words whitespace-pre-wrap text-base leading-relaxed"
-  dangerouslySetInnerHTML={{ __html: htmlContent }}
-/>
+            <Card style={{ padding: "1rem" }}>
+              <div
+                className="max-w-full overflow-x-auto break-words whitespace-pre-wrap text-base leading-relaxed"
+                dangerouslySetInnerHTML={{ __html: htmlContent }}
+              />
 
             </Card>
 
