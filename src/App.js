@@ -113,7 +113,7 @@ function App() {
             <Typography variant="h5" color="primary" gutterBottom>
               Döküman İçeriği
             </Typography>
-            <Card style={{ padding: "1rem", backgroundColor: "#f5f5f5" }}>
+            <Card style={{ padding: "1rem"}}>
               <div
                 style={{ whiteSpace: "normal" }}
                 dangerouslySetInnerHTML={{ __html: htmlContent }}
