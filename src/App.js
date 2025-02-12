@@ -1,6 +1,14 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 import { Mistral } from "@mistralai/mistralai";
-import html2canvas from "html2canvas";
+import {
+  Container,
+  Card,
+  Typography,
+  Button,
+  TextField,
+  CircularProgress,
+  Alert,
+} from "@mui/material";
 
 const client = new Mistral({ apiKey: process.env.REACT_APP_MISTRAL_API_KEY });
 
@@ -10,20 +18,7 @@ function App() {
   const [analysis, setAnalysis] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const analysisRef = useRef(null);
 
-  useEffect(() => {
-    if (htmlContent !== "") analyzeDocument(); // İçeriği aldıktan sonra analiz başlat
-  }, [htmlContent]);
-
-  // HTML etiketlerini temizleyip düz metni almak için fonksiyon
-  const cleanHtmlContent = (htmlContent) => {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(htmlContent, "text/html");
-    return doc.body.textContent || "";
-  };
-
-  // Google Docs içeriğini HTML formatında al
   const fetchGoogleDocsHTML = async (url) => {
     try {
       setLoading(true);
@@ -39,6 +34,7 @@ function App() {
 
       const text = await response.text();
       setHtmlContent(text);
+      await analyzeDocument(text);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -46,47 +42,24 @@ function App() {
     }
   };
 
-  // Google Docs URL’sinden içeriği çek
-  const handleFetchDoc = async () => {
-    if (!docUrl) {
-      setError("Lütfen geçerli bir Google Docs URL'si girin.");
-      return;
-    }
-
-    await fetchGoogleDocsHTML(docUrl);
-  };
-
-  // Mistral AI ile analiz yap
-  const analyzeDocument = async () => {
-    if (!htmlContent) {
-      setError("Lütfen önce bir döküman yükleyin.");
-      return;
-    }
-
+  const analyzeDocument = async (content) => {
     try {
       setLoading(true);
       setError(null);
-
-      // HTML etiketlerini temizle
-      const cleanContent = cleanHtmlContent(htmlContent);
 
       const chatResponse = await client.chat.complete({
         model: "pixtral-12b-2409",
         messages: [
           {
             role: "user",
-            content: `Aşağıdaki dökümanın türünü belirle ve eksiklerini analiz et. İçerik aşağıdadır:\n\n${cleanContent}`,
+            content: `Aşağıdaki dökümanın türünü belirle ve eksiklerini analiz et. İçerik aşağıdadır:\n\n${content}`,
           },
         ],
       });
 
-      console.log("Mistral API Yanıtı:", chatResponse); // Yanıtı kontrol et
-
-      // API yanıtının geçerli olduğundan emin ol
       const aiAnalysis = chatResponse?.choices?.[0]?.message?.content;
       if (aiAnalysis) {
         setAnalysis(aiAnalysis);
-        alert("Analiz Sonuçları tamamlandı!")
       } else {
         setError("AI tarafından analiz sonuçları alınamadı.");
       }
@@ -97,94 +70,69 @@ function App() {
     }
   };
 
-  // HTML içeriğini formatla (başlıkları düzenle)
-  const formatHtmlContent = (htmlContent) => {
-    let formattedContent = htmlContent;
-    
-    // "##" ve "###" sembollerini kaldır
-    formattedContent = formattedContent.replace(/##/g, '').replace(/###/g, '');
-    
-    formattedContent = formattedContent.replace(/<h1>/g, '<h1 class="text-2xl font-semibold text-indigo-600">')
-                                       .replace(/<h2>/g, '<h2 class="text-xl font-semibold text-indigo-600">')
-                                       .replace(/<h3>/g, '<h3 class="text-lg font-semibold text-indigo-600">')
-                                       .replace(/<p>/g, '<p class="text-gray-700">');
-    return formattedContent;
-  };
-
   return (
-    <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg p-6">
-      <div className="flex justify-center">
-  <h2 className="text-3xl font-bold  mb-4">
-    Döküman Analizi
-  </h2>
-</div>
-       
-        <p className="text-gray-600 text-center mb-6">
-          Google Docs URL'sini girin ve analiz alın.
-        </p>
+    <Container maxWidth="md" style={{ marginTop: "2rem" }}>
+      <Card style={{ padding: "2rem", textAlign: "center" }}>
+        <Typography variant="h4" gutterBottom>
+          Döküman Analizi
+        </Typography>
+        <TextField
+          fullWidth
+          label="Google Docs URL'sini girin"
+          variant="outlined"
+          value={docUrl}
+          onChange={(e) => setDocUrl(e.target.value)}
+          margin="normal"
+        />
+       <Button
+  variant="contained"
+  color="primary"
+  onClick={() => fetchGoogleDocsHTML(docUrl)}
+  disabled={loading || !docUrl}
+>
+  {loading ? (
+    <>
+      <CircularProgress size={24} style={{ marginRight: "8px" }} />
+      Analiz Ediliyor...
+    </>
+  ) : (
+    "Dökümanı Analiz Et"
+  )}
+</Button>
 
-        <div className="flex gap-4">
-          <input
-            type="url"
-            value={docUrl}
-            onChange={(e) => setDocUrl(e.target.value)}
-            placeholder="Google Docs URL'sini girin"
-            className="flex-1 min-w-0 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-4"
-            required
-          />
-          <button
-            onClick={handleFetchDoc}
-            disabled={loading}
-            className="px-6 py-3 rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50"
-          >
-            {loading ? "Analiz Ediliyor..." : "Dökümanı Al"}
-          </button>
-        </div>
 
         {error && (
-          <div className="mt-4 bg-red-50 p-4 rounded-md text-red-700 text-center">
+          <Alert severity="error" style={{ marginTop: "1rem" }}>
             {error}
-          </div>
+          </Alert>
         )}
 
-        {htmlContent && (
-          <div className="mt-8">
-            <div className="mt-8 bg-white shadow-lg rounded-lg overflow-hidden">
-               <div className="px-6 py-4 bg-gradient-to-r  text-white text-lg from-indigo-600 to-blue-500">
-             Döküman İçeriği
-            </div></div>
-            <div
-              ref={analysisRef}
-              className="p-4 bg-white rounded-lg shadow"
-              dangerouslySetInnerHTML={{ __html: formatHtmlContent(htmlContent) }}
-            />
-          </div>
-        )}
+        {htmlContent && analysis && (
+          <div style={{ marginTop: "2rem", textAlign: "left" }}>
+            {/* Döküman İçeriği */}
+            <Typography variant="h5" color="primary" gutterBottom>
+              Döküman İçeriği
+            </Typography>
+            <Card style={{ padding: "1rem", backgroundColor: "#f5f5f5" }}>
+              <div
+                style={{ whiteSpace: "normal" }}
+                dangerouslySetInnerHTML={{ __html: htmlContent }}
+              />
+            </Card>
 
-        {analysis && (
-          <div className="mt-8 bg-white shadow-lg rounded-lg overflow-hidden">
-            <div className="px-6 py-4 bg-gradient-to-r  text-white text-lg from-indigo-600 to-blue-500">
+            {/* Analiz Sonuçları */}
+            <Typography variant="h5" color="primary" style={{ marginTop: "1.5rem" }} gutterBottom>
               Analiz Sonuçları
-            </div>
-            <div className="border-t border-gray-200 px-6 py-6 prose text-blue max-w-none space-y-4">
-              {analysis.split("\n").map((line, i) => {
-                if (line.startsWith("#")) {
-                  return <h4 key={i} className="text-2xl font-semibold text-blue">{line.replace("#", "")}</h4>;
-                }
-                if (line.startsWith("##")) {
-                  return <h4 key={i} className="text-xl font-semibold text-blue">{line.replace("##", "")}</h4>;
-                }
-                if (line.startsWith("###")) {
-                  return <h4 key={i} className="text-lg font-semibold text-blue">{line.replace("###", "")}</h4>;
-                }
-                return <p key={i} className="text-blue-700">{line}</p>;
-              })}
-            </div>
+            </Typography>
+            <Card style={{ padding: "1rem", backgroundColor: "#e3f2fd" }}>
+              <Typography variant="body1" style={{ whiteSpace: "pre-line" }}>
+                {analysis}
+              </Typography>
+            </Card>
           </div>
         )}
-      </div>
-    </div>
+      </Card>
+    </Container>
   );
 }
 
