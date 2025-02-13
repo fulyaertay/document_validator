@@ -18,7 +18,11 @@ function App() {
   const [analysis, setAnalysis] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [question, setQuestion] = useState(""); // Kullanıcının sorusu
+  const [answer, setAnswer] = useState(null); // AI cevabı
+  const [questionLoading, setQuestionLoading] = useState(false); // Soru işlemi için loading state
 
+  // Google Docs içeriğini çekme fonksiyonu
   const fetchGoogleDocsHTML = async (url) => {
     try {
       setLoading(true);
@@ -42,6 +46,7 @@ function App() {
     }
   };
 
+  // AI ile doküman analizi yapma fonksiyonu
   const analyzeDocument = async (content) => {
     try {
       setLoading(true);
@@ -52,32 +57,62 @@ function App() {
         messages: [
           {
             role: "user",
-            content: `Aşağıdaki dökümanın türünü belirle ve detaylı bir şekilde her bir başlık için eksiklerini belirle ve analiz et. Ayrıca içeriği tasarımsal açıdan da değerlendir. İçerik budur:\n\n${content}`,
+            content: `Aşağıdaki dökümanın türünü belirle ve detaylı bir şekilde her bir başlık için eksiklerini belirle ve analiz et. Ayrıca içeriği tasarımsal açıdan da değerlendir. İçerik:\n\n${content}`,
           },
         ],
       });
 
       const aiAnalysis = chatResponse?.choices?.[0]?.message?.content;
-      if (aiAnalysis) {
-        setAnalysis(aiAnalysis);
-      } else {
-        setError("AI tarafından analiz sonuçları alınamadı.");
-      }
+      setAnalysis(aiAnalysis || "Analiz bulunamadı.");
     } catch (err) {
       setError("Analiz sırasında bir hata oluştu: " + err.message);
     } finally {
       setLoading(false);
     }
   };
-  const parseAnalysis = (analysisText) => {
-    // '###' ile başlıkları ve içerikleri ayırma
-    const sections = analysisText.split("###").map((section) => section.trim());
-    return sections.filter((section) => section !== ""); // Boş bölümleri temizle
+
+  // Kullanıcının sorduğu soruya AI'nin cevap vermesi için fonksiyon
+  const askQuestion = async () => {
+    if (!question.trim()) return;
+
+    try {
+      setQuestionLoading(true);
+      setError(null);
+      setAnswer(null);
+
+      const chatResponse = await client.chat.complete({
+        model: "pixtral-12b-2409",
+        messages: [
+          {
+            role: "system",
+            content: "Aşağıdaki dokümana dayanarak sorulara yanıt ver.",
+          },
+          {
+            role: "user",
+            content: `Döküman içeriği:\n\n${htmlContent}\n\nSoru: ${question}`,
+          },
+        ],
+      });
+
+      const aiAnswer = chatResponse?.choices?.[0]?.message?.content;
+      setAnswer(aiAnswer || "Cevap bulunamadı.");
+    } catch (err) {
+      setError("Soru yanıtlama sırasında bir hata oluştu: " + err.message);
+    } finally {
+      setQuestionLoading(false);
+    }
   };
+  const parseAnalysis = (analysisText) => {
+    return analysisText
+      .split("###")
+      .map((section) => section.trim())
+      .filter((section) => section !== "");
+  };
+
   return (
     <Container maxWidth="md" style={{ marginTop: "2rem" }}>
       <Card style={{ padding: "2rem", textAlign: "center" }}>
-        <Typography variant="h4" gutterBottom>
+        <Typography variant="h4" gutterBottom color="primary">
           Döküman Analizi
         </Typography>
         <TextField
@@ -94,16 +129,8 @@ function App() {
           onClick={() => fetchGoogleDocsHTML(docUrl)}
           disabled={loading || !docUrl}
         >
-          {loading ? (
-            <>
-              <CircularProgress size={24} style={{ marginRight: "8px" }} />
-              Analiz Ediliyor...
-            </>
-          ) : (
-            "Dökümanı Analiz Et"
-          )}
+          {loading ? <CircularProgress size={24} style={{ marginRight: "8px" }} /> : "Dökümanı Analiz Et"}
         </Button>
-
 
         {error && (
           <Alert severity="error" style={{ marginTop: "1rem" }}>
@@ -112,39 +139,66 @@ function App() {
         )}
 
         {htmlContent && analysis && (
+
           <div style={{ marginTop: "2rem", textAlign: "left" }}>
-            {/* Döküman İçeriği */}
-            <Typography variant="h5" color="primary" gutterBottom>
-              Döküman İçeriği
+            {/* Soru-Cevap Alanı */}
+            <Typography variant="h5" color="primary" style={{ marginTop: "1.5rem" }} gutterBottom>
+              Sorularınızı Sorun
             </Typography>
-            <Card style={{ padding: "1rem" }}>
-              <div
-                className="max-w-full overflow-x-auto break-words whitespace-pre-wrap text-base leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: htmlContent }}
-              />
+            <TextField
+              fullWidth
+              label="Döküman ile ilgili bir soru sorun"
+              variant="outlined"
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              margin="normal"
+            />
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={askQuestion}
+              disabled={questionLoading || !question}
+            >
+              {questionLoading ? <CircularProgress size={24} style={{ marginRight: "8px" }} /> : " Gönder"}
+            </Button>
 
-            </Card>
-
+            {answer && (
+              <Card style={{ padding: "1rem", backgroundColor: "#f0f0f0", marginTop: "1rem" }}>
+                <Typography variant="h6">Cevap:</Typography>
+                <Typography variant="body1">{answer}</Typography>
+              </Card>
+            )}
             {/* Analiz Sonuçları */}
             <Typography variant="h5" color="primary" style={{ marginTop: "1.5rem" }} gutterBottom>
               Analiz Sonuçları
             </Typography>
             <Card style={{ padding: "1rem", backgroundColor: "#e3f2fd" }}>
-              <Typography variant="body1" style={{ whiteSpace: "pre-line" }}>
-             {/* Başlıkları ayırarak render etme */}
-             {parseAnalysis(analysis).map((section, index) => {
+              {parseAnalysis(analysis).map((section, index) => {
                 const [title, ...content] = section.split("\n");
                 return (
-                  <div key={index}>
-                    <Typography variant="h6" style={{ marginTop: "1rem" }}>
-                      {title}
+                  <div key={index} style={{ marginBottom: "1rem" }}>
+                    <Typography variant="h6" color="primary">
+                      {title.trim()}
                     </Typography>
-                    <Typography variant="body1">{content.join("\n")}</Typography>
+                    <Typography variant="body1" style={{ whiteSpace: "pre-line" }}>
+                      {content.join("\n").trim()}
+                    </Typography>
                   </div>
                 );
               })}
-              </Typography>
             </Card>
+
+            {/* Döküman İçeriği */}
+            <Typography variant="h5" color="primary" gutterBottom>
+              Döküman İçeriği
+            </Typography>
+            <Card style={{ padding: "1rem" }}>
+              <div dangerouslySetInnerHTML={{ __html: htmlContent }} />
+            </Card>
+
+
+
+
           </div>
         )}
       </Card>
