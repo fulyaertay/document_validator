@@ -2,7 +2,7 @@
 
 ## Input [the URL address](https://docs.google.com/document/d/1kcyziqwHsYq1bpj0p9DsC2PAPiyym2uXbRX0D7jTTAU/edit?tab=t.0)
 ## Live Link here:https://document-validator-ai.vercel.app/
-
+![alt text](layout.png)
 ## Project Goal
 When you give a Google Docs URL on a LLM model, like ChatGPT, it produces output like that;
 ![alt text](unable_to_analyze_from_LLM_model.png)
