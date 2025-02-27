@@ -9,7 +9,7 @@ When you give a Google Docs URL on a LLM model, like ChatGPT, it produces output
 This project is developed to solve this problem. It allows users to directly input a Google Docs URL for document analysis, extracting its content, and analyzing it. The user can get an analysis by simply entering the link, without needing to copy and paste the document.
 ## Using technologies;
 - React JS
-- Tailwind CSS
+- Material-UI Components
 - Mistral AI
 - Gemini Code Assist
 
