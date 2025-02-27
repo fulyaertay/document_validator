@@ -156,17 +156,17 @@ function App() {
   return (
     <Container maxWidth="md" style={{ marginTop: "2rem" }}>
       <Card style={{ padding: "2rem", textAlign: "center" }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap' }}>
           <Typography variant="h4" gutterBottom color="primary">
             {getText("title")}
           </Typography>
           {/* Language Selector using MUI Buttons */}
-          <div>
+          <div style={{ display: 'flex', flexWrap: 'wrap' }}>
             <Button
               variant={language === "tr" ? "contained" : "outlined"}
               color={language === "tr" ? "primary" : "default"}
               onClick={() => handleLanguageChange("tr")}
-              style={{ marginRight: "8px" }}
+              style={{ marginRight: "8px", minWidth: "80px" }}
             >
               TR
             </Button>
@@ -174,6 +174,7 @@ function App() {
               variant={language === "en" ? "contained" : "outlined"}
               color={language === "en" ? "primary" : "default"}
               onClick={() => handleLanguageChange("en")}
+              style={{ minWidth: "80px" }}
             >
               EN
             </Button>
